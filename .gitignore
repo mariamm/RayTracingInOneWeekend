@@ -32,3 +32,6 @@ _ReSharper*/
 packages/
 *.vcxproj.filters
 *.vcxproj
+/external/*
+/result_images/*
+*.ppm
