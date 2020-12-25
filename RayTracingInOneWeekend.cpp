@@ -108,17 +108,16 @@ HittableList simple_light()
 
     auto checker = make_shared<CheckeredTexture>(Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9));
     auto material_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
-    auto difflight = make_shared<DiffuseLight>(Color(4, 4, 4));
-    auto material_left = make_shared<Dielectric>(1.5);
-    auto material_right = make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.0);
-
     world.add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, make_shared<Lambertian>(checker)));
 
-    world.add(make_shared<Sphere>(point3(0.0, 0.0, -1.0), 0.5, difflight));
-    world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
-    world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), -0.45, material_left));
-    world.add(make_shared<Sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
+    auto light = make_shared<Light>(Color(10, 10, 10));
 
+    auto material = make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
+
+    world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), 0.5, material));
+    world.add(make_shared<Sphere>(point3(0.0, 100.0, -1.0), 50, light));
+    world.add(make_shared<Sphere>(point3(1.0, 0.0, -1.0), 0.5, material));
+    
     return world;
 }
 void write_color(std::ofstream& out, Color pixel_color, int samples_per_pixel)
@@ -200,10 +199,58 @@ Color get_ray_color(const ray& r, const hittable &world, int depth, const Color 
 int main()
 {
     // World
-    //auto world = random_scene();
-    HittableList world = initial_scene();
-    //HittableList world = earth_scene();
-    //HittableList world = simple_light();
+    HittableList world;
+    Color background(0, 0, 0);
+
+    // Camera
+    point3 cameraPosition(0, 0, 7);
+    point3 cameraLookAt(0, 0, 0);
+    vec3 cameraUp(0, 1, 0);
+    auto dist_to_focus = 10.0;
+    auto aperture = 0.1;
+    double fieldOfView_deg = 20.;
+
+    switch (3) 
+    {
+    case 1:
+        world = random_scene();
+        background = Color(0.70, 0.80, 1.00);
+        cameraPosition = point3(13, 2, 3);
+        cameraLookAt = point3(0, 0, 0);
+        fieldOfView_deg = 20.0;
+        aperture = 0.1;
+        break;
+
+    case 2:
+        world = initial_scene();
+        background = Color(0.70, 0.80, 1.00);
+        cameraPosition = point3(0, 0, 7);
+        cameraLookAt = point3(0, 0, 0);
+        fieldOfView_deg = 20.0;
+        aperture = 0.1;
+        break;
+
+    case 3:
+        world = simple_light();
+        background = Color(0.0, 0.0, 0.0);    
+        cameraLookAt = point3(0, 0, 0);
+        fieldOfView_deg = 20.0;
+        aperture = 0.1;
+        break;
+
+    case 4:
+        world = earth_scene();
+        background = Color(0.70, 0.80, 1.00);
+        cameraPosition = point3(13, 2, 3);
+        cameraLookAt = point3(0, 0, 0);
+        fieldOfView_deg = 20.0;
+        break;
+
+    default:
+    case 5:
+        background = Color(0.0, 0.0, 0.0);
+        break;
+    }
 
     //Image
     std::string imagename = "image19.ppm";
@@ -212,16 +259,6 @@ int main()
     const int h = static_cast<int>(w / aspect_ratio);
     const int samples_per_pixel = 70;
     const int max_depth = 15;
-    Color background(0.7, 0.8, 1.0);
-
-    // Camera
-    //point3 cameraPosition(13, 2, 3);
-    point3 cameraPosition(0, 0, 0);
-    point3 cameraLookAt(0, 0, 0);
-    vec3 cameraUp(0, 1, 0);
-    auto dist_to_focus = 10.0;
-    auto aperture = 0.1;
-    double fieldOfView_deg = 20.;
 
     Camera cam(cameraPosition, cameraLookAt, cameraUp, fieldOfView_deg, aspect_ratio, dist_to_focus, aperture);
 
