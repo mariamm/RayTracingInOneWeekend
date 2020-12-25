@@ -9,7 +9,7 @@ using std::make_shared;
 class Texture 
 {
     public:
-    virtual Color colorValue(double u, double v, const point3& p) const = 0;
+    virtual Color colorValue(double u, double v, const Point3& p) const = 0;
 };
 
 class SolidColor : public Texture
@@ -23,7 +23,7 @@ class SolidColor : public Texture
             color_value = Color(r, g, b);
         }
 
-        virtual Color colorValue(double u, double v, const point3& p) const override
+        virtual Color colorValue(double u, double v, const Point3& p) const override
         {
             return color_value;
         }
@@ -53,7 +53,7 @@ class CheckeredTexture : public Texture
             odd = make_shared<SolidColor>(odd_);
         }
 
-        virtual Color colorValue(double u, double v, const point3& p) const override
+        virtual Color colorValue(double u, double v, const Point3& p) const override
         {
             auto sines = sin(10 * p.x()) * sin(10 * p.y()) * sin(10 * p.z());
             if (sines < 0)
@@ -98,7 +98,7 @@ class ImageTexture : public Texture
             image = nullptr;
         }
 
-        virtual Color colorValue(double u, double v, const point3& p) const override
+        virtual Color colorValue(double u, double v, const Point3& p) const override
         {
             if (image == nullptr)
                 return Color(0, 1, 1);

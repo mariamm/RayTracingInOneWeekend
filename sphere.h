@@ -6,28 +6,28 @@
 
 class Material;
 
-class Sphere : public hittable
+class Sphere : public Hittable
 {
     public:
         Sphere() {
-            center = point3(0, 0, 0);
+            center = Point3(0, 0, 0);
             radius = 0.0;
         }
-        Sphere(point3 _center, double _radius, std::shared_ptr<Material> _material) :center(_center), radius(_radius), material(_material) {}
+        Sphere(Point3 _center, double _radius, std::shared_ptr<Material> _material) :center(_center), radius(_radius), material(_material) {}
 
-        virtual bool hit(const ray& r, const double& min_t, const double& max_t, hit_record& hitrecord) const override;
-        static void get_uv_coordinates(const point3 &p, double& u, double& v);
+        virtual bool hit(const Ray& r, const double& min_t, const double& max_t, hit_record& hitrecord) const override;
+        static void get_uv_coordinates(const Point3 &p, double& u, double& v);
 
     private:
-        point3 center;
+        Point3 center;
         double radius;
         std::shared_ptr<Material> material;
 };
 
 
-bool Sphere::hit(const ray& r, const double& t_min, const double& t_max, hit_record& rec) const
+bool Sphere::hit(const Ray& r, const double& t_min, const double& t_max, hit_record& rec) const
 {
-    vec3 oc = r.origin() - center;
+    Vec3 oc = r.origin() - center;
     auto a = r.direction().length_squared();
     auto half_b = dot(oc, r.direction());
     auto c = oc.length_squared() - radius * radius;
@@ -46,7 +46,7 @@ bool Sphere::hit(const ray& r, const double& t_min, const double& t_max, hit_rec
 
     rec.t = root;
     rec.p = r.at(rec.t);
-    vec3 outward_normal = (rec.p - center) / radius;
+    Vec3 outward_normal = (rec.p - center) / radius;
     rec.set_face_normal(r, outward_normal);
     get_uv_coordinates(outward_normal, rec.u, rec.v);
     rec.material_ptr = material;
@@ -54,7 +54,7 @@ bool Sphere::hit(const ray& r, const double& t_min, const double& t_max, hit_rec
     return true;
 }
 
-void Sphere::get_uv_coordinates(const point3& p, double& u, double& v)
+void Sphere::get_uv_coordinates(const Point3& p, double& u, double& v)
 {
     // p: a given point on the sphere of radius one, centered at the origin.
     // u: returned value [0,1] of angle around the Y axis from X=-1.

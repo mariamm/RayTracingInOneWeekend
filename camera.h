@@ -5,7 +5,7 @@
 class Camera {
 
     public:
-        Camera(point3 lookfrom, point3 lookat, vec3 vup,
+        Camera(Point3 lookfrom, Point3 lookat, Vec3 vup,
             double vfov_degrees, double aspectRatio, double focalDist, double aperature,
             double time0_ = 0, double time1_ = 0) : time0(time0_), time1(time1_)
         {
@@ -27,20 +27,20 @@ class Camera {
             lower_left_corner = origin - horizontal / 2. - vertical / 2. - focalDist*w;
         }
 
-        ray get_ray(double s, double t) const
+        Ray get_ray(double s, double t) const
         {
-            vec3 lens_disk = lens_radius * random_in_unit_disk();
-            vec3 offset = u * lens_disk.x() + v * lens_disk.y();
-            return ray( origin+offset, 
+            Vec3 lens_disk = lens_radius * random_in_unit_disk();
+            Vec3 offset = u * lens_disk.x() + v * lens_disk.y();
+            return Ray( origin+offset, 
                         lower_left_corner + s * horizontal + t * vertical - origin - offset, 
                         random_double(time0, time1));
         }
     private:
-            point3 origin;
-            vec3 horizontal;
-            vec3 vertical;
-            vec3 lower_left_corner;
-            vec3 u, v, w;
+            Point3 origin;
+            Vec3 horizontal;
+            Vec3 vertical;
+            Vec3 lower_left_corner;
+            Vec3 u, v, w;
             double lens_radius;
             double time0, time1; // shutter open/close times
 };

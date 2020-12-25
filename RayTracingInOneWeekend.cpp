@@ -26,11 +26,11 @@ HittableList initial_scene()
     auto material_right = make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.0);
 
     //world.add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
-    world.add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, make_shared<Lambertian>(checker)));
-    world.add(make_shared<Sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
-    world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
-    world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), -0.45, material_left));
-    world.add(make_shared<Sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
+    world.add(make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, make_shared<Lambertian>(checker)));
+    world.add(make_shared<Sphere>(Point3(0.0, 0.0, -1.0), 0.5, material_center));
+    world.add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, material_left));
+    world.add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), -0.45, material_left));
+    world.add(make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, material_right));
 
     return world;
 }
@@ -38,16 +38,16 @@ HittableList random_scene() {
     HittableList world;
 
     auto ground_material = make_shared<Lambertian>(COLOR_GREY);
-    world.add(make_shared<Sphere>(point3(0, -1000, 0), 1000, ground_material));
+    world.add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
 
     for (int a = -11; a < 11; a++) 
     {
         for (int b = -11; b < 11; b++) 
         {
             auto choose_mat = random_double();
-            point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
+            Point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
 
-            if ((center - point3(4, 0.2, 0)).length() > 0.9) 
+            if ((center - Point3(4, 0.2, 0)).length() > 0.9) 
             {
                 shared_ptr<Material> sphere_material;
 
@@ -57,8 +57,8 @@ HittableList random_scene() {
                     auto albedo = Color::random() * Color::random();
                     sphere_material = make_shared<Lambertian>(albedo);
 
-                    auto center2 = center + vec3(0, random_double(0, .5), 0);
-                    world.add(make_shared<moving_sphere>(0.0, 1.0,
+                    auto center2 = center + Vec3(0, random_double(0, .5), 0);
+                    world.add(make_shared<MovingSphere>(0.0, 1.0,
                         center, center2,  0.2, sphere_material));
                 }
                 else if (choose_mat < 0.95) 
@@ -80,13 +80,13 @@ HittableList random_scene() {
     }
 
     auto material1 = make_shared<Dielectric>(1.5);
-    world.add(make_shared<Sphere>(point3(0, 1, 0), 1.0, material1));
+    world.add(make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
 
     auto material2 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
-    world.add(make_shared<Sphere>(point3(-4, 1, 0), 1.0, material2));
+    world.add(make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
 
     auto material3 = make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
-    world.add(make_shared<Sphere>(point3(4, 1, 0), 1.0, material3));
+    world.add(make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
 
     return world;
 }
@@ -97,7 +97,7 @@ HittableList earth_scene()
     shared_ptr<Material> earthMaterial = make_shared<Lambertian>(earthTexture);
     
     HittableList world;
-    world.add(make_shared<Sphere>(point3(), 2, earthMaterial));
+    world.add(make_shared<Sphere>(Point3(), 2, earthMaterial));
     return world;
 }
 
@@ -107,15 +107,14 @@ HittableList simple_light()
 
     auto checker = make_shared<CheckeredTexture>(Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9));
     auto material_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
-    world.add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, make_shared<Lambertian>(checker)));
+    world.add(make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, make_shared<Lambertian>(checker)));
 
-   //auto light = make_shared<Light>(COLOR_WHITE, 7);
-    auto light = make_shared<Light>(make_shared<CheckeredTexture>(Color(0.1, 0.1, 0.1), COLOR_WHITE*7));
-    auto material = make_shared<Lambertian>(COLOR_WHITE);
+    auto light_material = make_shared<Light>(COLOR_WHITE, 7);
+    auto lambertian_material = make_shared<Lambertian>(COLOR_WHITE);
 
-    world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), 0.5, material));
-    world.add(make_shared<Sphere>(point3(0.0, 100.0, -1.0), 50, light));
-    world.add(make_shared<Sphere>(point3(1.0, 0.0, -1.0), 0.5, material));
+    world.add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, lambertian_material));
+    world.add(make_shared<Sphere>(Point3(0.0, 100.0, -1.0), 50, light_material));
+    world.add(make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, lambertian_material));
     
     return world;
 }
@@ -167,7 +166,7 @@ bool createGradientPPM(std::string filename)
     return true;
 } 
 
-Color get_ray_color(const ray& r, const hittable &world, int depth, const Color &backgroundColor)
+Color get_ray_color(const Ray& r, const Hittable &world, int depth, const Color &backgroundColor)
 {
     hit_record rec;
 
@@ -183,7 +182,7 @@ Color get_ray_color(const ray& r, const hittable &world, int depth, const Color 
         return backgroundColor;
     }
 
-    ray scattered;
+    Ray scattered;
     Color attenuation; //value of obsorbed color 
     Color emitted = rec.material_ptr->color_emitted(rec.u, rec.v, rec.p); //if Material is light emitting
     if (rec.material_ptr->scatter(r, rec, attenuation, scattered))
@@ -202,9 +201,9 @@ int main()
     Color background(0, 0, 0);
 
     // Camera
-    point3 cameraPosition(0, 0, 7);
-    point3 cameraLookAt(0, 0, 0);
-    vec3 cameraUp(0, 1, 0);
+    Point3 cameraPosition(0, 0, 7);
+    Point3 cameraLookAt(0, 0, 0);
+    Vec3 cameraUp(0, 1, 0);
     auto dist_to_focus = 10.0;
     auto aperture = 0.1;
     double fieldOfView_deg = 20.;
@@ -214,8 +213,8 @@ int main()
     case 1:
         world = random_scene();
         background = Color(0.70, 0.80, 1.00);
-        cameraPosition = point3(13, 2, 3);
-        cameraLookAt = point3(0, 0, 0);
+        cameraPosition = Point3(13, 2, 3);
+        cameraLookAt = Point3(0, 0, 0);
         fieldOfView_deg = 20.0;
         aperture = 0.1;
         break;
@@ -223,8 +222,8 @@ int main()
     case 2:
         world = initial_scene();
         background = Color(0.70, 0.80, 1.00);
-        cameraPosition = point3(0, 0, 7);
-        cameraLookAt = point3(0, 0, 0);
+        cameraPosition = Point3(0, 0, 7);
+        cameraLookAt = Point3(0, 0, 0);
         fieldOfView_deg = 20.0;
         aperture = 0.1;
         break;
@@ -232,7 +231,7 @@ int main()
     case 3:
         world = simple_light();
         background = Color(0.0, 0.0, 0.0);    
-        cameraLookAt = point3(0, 0, 0);
+        cameraLookAt = Point3(0, 0, 0);
         fieldOfView_deg = 20.0;
         aperture = 0.1;
         break;
@@ -240,8 +239,8 @@ int main()
     case 4:
         world = earth_scene();
         background = Color(0.70, 0.80, 1.00);
-        cameraPosition = point3(13, 2, 3);
-        cameraLookAt = point3(0, 0, 0);
+        cameraPosition = Point3(13, 2, 3);
+        cameraLookAt = Point3(0, 0, 0);
         fieldOfView_deg = 20.0;
         break;
 
@@ -279,7 +278,7 @@ int main()
             for (int s = 0; s < samples_per_pixel; ++s) {
                 auto u = double(i) / (w - 1);
                 auto v = double(j) / (h - 1);
-                ray r = cam.get_ray(u, v);
+                Ray r = cam.get_ray(u, v);
                 pixel_color += get_ray_color(r, world, max_depth, background);
             }
 
