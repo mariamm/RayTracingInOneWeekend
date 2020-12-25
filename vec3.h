@@ -76,9 +76,28 @@ private:
 using point3 = vec3;
 using Color = vec3; // normalized color values rgb [0,1]
 
+#define     COLOR_WHITE   Color(1, 1, 1)
+#define     COLOR_BLACK   Color(0, 0, 0)
+#define     COLOR_GREY    Color(0.5, 0.5, 0.5)    
+#define     COLOR_RED     Color(1, 0, 0)
+#define     COLOR_GREEN   Color(0, 1, 0)
+#define     COLOR_BLUE    Color(0, 0, 1)
+#define     COLOR_CYAN    Color(0, 1, 1)
+#define     COLOR_TEAL    Color(0, 0.5, 0.5)
+#define     COLOR_YELLOW  Color(1, 1, 0)
+#define     COLOR_GOLD    Color(1, 0.84, 0) 
+#define     COLOR_OLIVE   Color(0.5, 0.5, 0)
+#define     COLOR_MAGENTA Color(1, 0, 1)
+#define     COLOR_PURPLE  Color(0.5, 0, 0.5)
+
 inline std::ostream& operator<<(std::ostream& out, const vec3& v)
 {
     return out << v.x() << v.y() << v.z();
+}
+
+inline vec3 operator+(const vec3& v, double offset)
+{
+    return vec3(v.x() + offset, v.y() + offset, v.z() + offset);
 }
 
 inline vec3 operator+(const vec3& v, const vec3& u)

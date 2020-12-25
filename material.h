@@ -86,21 +86,21 @@ class Dielectric : public Material
 };
 
 
-class DiffuseLight : public Material
+class Light : public Material
 {
     public:
 
-        DiffuseLight(shared_ptr<Texture> texture) : emit(texture){}
-        DiffuseLight(Color color)
+        Light(shared_ptr<Texture> texture) : emit(texture){}
+        Light(Color color, int intensity = 1)
         {
-            emit = make_shared<SolidColor>(color);
+            emit = make_shared<SolidColor>(intensity*color);
         }
         virtual bool scatter(const ray& ray_in, const hit_record& rec, Color& attenuation, ray& scatter_ray) const override
         {
             return false;
         }
 
-        virtual Color color_emitted(double u, double v, const point3& p)
+        virtual Color color_emitted(double u, double v, const point3& p) const override
         {
             return emit->colorValue(u, v, p);
         }

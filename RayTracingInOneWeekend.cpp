@@ -12,7 +12,6 @@
 #include "camera.h"
 #include "material.h"
 
-
 using std::shared_ptr;
 using std::make_shared;
 
@@ -38,7 +37,7 @@ HittableList initial_scene()
 HittableList random_scene() {
     HittableList world;
 
-    auto ground_material = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+    auto ground_material = make_shared<Lambertian>(COLOR_GREY);
     world.add(make_shared<Sphere>(point3(0, -1000, 0), 1000, ground_material));
 
     for (int a = -11; a < 11; a++) 
@@ -110,9 +109,9 @@ HittableList simple_light()
     auto material_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
     world.add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, make_shared<Lambertian>(checker)));
 
-    auto light = make_shared<Light>(Color(10, 10, 10));
-
-    auto material = make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
+   //auto light = make_shared<Light>(COLOR_WHITE, 7);
+    auto light = make_shared<Light>(make_shared<CheckeredTexture>(Color(0.1, 0.1, 0.1), COLOR_WHITE*7));
+    auto material = make_shared<Lambertian>(COLOR_WHITE);
 
     world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), 0.5, material));
     world.add(make_shared<Sphere>(point3(0.0, 100.0, -1.0), 50, light));
@@ -253,7 +252,7 @@ int main()
     }
 
     //Image
-    std::string imagename = "image19.ppm";
+    std::string imagename = "image29.ppm";
     const auto aspect_ratio = 3.0 / 2.0;
     const int w = 400;
     const int h = static_cast<int>(w / aspect_ratio);
