@@ -5,6 +5,7 @@
 #include "vec3.h"
 #include "ray.h"
 #include "util.h"
+#include "aabb.h"
 
 class Material;
 
@@ -26,5 +27,7 @@ struct hit_record {
 class Hittable {
     public:
         virtual bool hit(const Ray& r, const double& min_t, const double& max_t, hit_record& hitrecord) const = 0;
+        virtual bool boundingBox(double time0, double time1, aabb& output_box) const = 0;
+
 
 };

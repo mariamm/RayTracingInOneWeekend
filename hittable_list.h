@@ -25,6 +25,7 @@ class HittableList : public Hittable
         }
 
         virtual bool hit(const Ray& r, const double& min_t, const double& max_t, hit_record& hitrecord) const override;
+        virtual bool boundingBox(double time0, double time1, aabb& output_box) const override;
 
         std::vector<std::shared_ptr<Hittable>> list;
       
@@ -47,3 +48,7 @@ bool HittableList::hit(const Ray& r, const double& t_min, const double& t_max, h
     return hit_anything;
 }
 
+bool HittableList::boundingBox(double time0, double time1, aabb& output_box) const
+{
+    return false;
+}

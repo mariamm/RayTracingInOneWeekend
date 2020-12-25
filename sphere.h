@@ -18,6 +18,8 @@ class Sphere : public Hittable
         virtual bool hit(const Ray& r, const double& min_t, const double& max_t, hit_record& hitrecord) const override;
         static void get_uv_coordinates(const Point3 &p, double& u, double& v);
 
+        virtual bool boundingBox(double time0, double time1, aabb& output_box) const override;
+
     private:
         Point3 center;
         double radius;
@@ -71,4 +73,9 @@ void Sphere::get_uv_coordinates(const Point3& p, double& u, double& v)
 
     u = phi / (2 * pi);
     v = theta / pi;
+}
+
+bool Sphere::boundingBox(double time0, double time1, aabb& output_box) const
+{
+    return false;
 }

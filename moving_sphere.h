@@ -18,6 +18,7 @@ class MovingSphere : public Hittable
             : t0(time_0), t1(time_1), c0(center_0), c1(center_1), radius(radius_), m(material){}
 
         virtual bool hit(const Ray& r, const double& min_t, const double& max_t, hit_record& hitrecord) const override;
+        virtual bool boundingBox(double time0, double time1, aabb& output_box) const override;
 
         Point3 centerAtTime(double time) const
         {
@@ -61,4 +62,9 @@ bool MovingSphere::hit(const Ray& r, const double& min_t, const double& max_t, h
     hitrecord.set_face_normal(r, outward_normal);
 
     return true;
+}
+
+bool MovingSphere::boundingBox(double time0, double time1, aabb& output_box) const
+{
+    return false;
 }
