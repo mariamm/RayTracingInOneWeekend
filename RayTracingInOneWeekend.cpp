@@ -16,10 +16,29 @@
 using std::shared_ptr;
 using std::make_shared;
 
-hittable_list random_scene() {
-    hittable_list world;
+HittableList initial_scene()
+{
+    HittableList world;
 
-    auto ground_material = make_shared<Lambertian>(color(0.5, 0.5, 0.5));
+    auto checker = make_shared<CheckeredTexture>(Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9));
+    auto material_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
+    auto material_center = make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
+    auto material_left = make_shared<Dielectric>(1.5);
+    auto material_right = make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.0);
+
+    //world.add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, material_ground));
+    world.add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, make_shared<Lambertian>(checker)));
+    world.add(make_shared<Sphere>(point3(0.0, 0.0, -1.0), 0.5, material_center));
+    world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
+    world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), -0.45, material_left));
+    world.add(make_shared<Sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
+
+    return world;
+}
+HittableList random_scene() {
+    HittableList world;
+
+    auto ground_material = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
     world.add(make_shared<Sphere>(point3(0, -1000, 0), 1000, ground_material));
 
     for (int a = -11; a < 11; a++) 
@@ -36,7 +55,7 @@ hittable_list random_scene() {
                 if (choose_mat < 0.8) 
                 {
                     // diffuse
-                    auto albedo = color::random() * color::random();
+                    auto albedo = Color::random() * Color::random();
                     sphere_material = make_shared<Lambertian>(albedo);
 
                     auto center2 = center + vec3(0, random_double(0, .5), 0);
@@ -46,7 +65,7 @@ hittable_list random_scene() {
                 else if (choose_mat < 0.95) 
                 {
                     // metal
-                    auto albedo = color::random(0.5, 1);
+                    auto albedo = Color::random(0.5, 1);
                     auto fuzz = random_double(0, 0.5);
                     sphere_material = make_shared<Metal>(albedo, fuzz);
                     world.add(make_shared<Sphere>(center, 0.2, sphere_material));
@@ -64,16 +83,45 @@ hittable_list random_scene() {
     auto material1 = make_shared<Dielectric>(1.5);
     world.add(make_shared<Sphere>(point3(0, 1, 0), 1.0, material1));
 
-    auto material2 = make_shared<Lambertian>(color(0.4, 0.2, 0.1));
+    auto material2 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
     world.add(make_shared<Sphere>(point3(-4, 1, 0), 1.0, material2));
 
-    auto material3 = make_shared<Metal>(color(0.7, 0.6, 0.5), 0.0);
+    auto material3 = make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<Sphere>(point3(4, 1, 0), 1.0, material3));
 
     return world;
 }
 
-void write_color(std::ofstream& out, color pixel_color, int samples_per_pixel)
+HittableList earth_scene()
+{
+    shared_ptr<Texture> earthTexture = make_shared<ImageTexture>("textures\\earthmap.jpg");
+    shared_ptr<Material> earthMaterial = make_shared<Lambertian>(earthTexture);
+    
+    HittableList world;
+    world.add(make_shared<Sphere>(point3(), 2, earthMaterial));
+    return world;
+}
+
+HittableList simple_light() 
+{
+    HittableList world;
+
+    auto checker = make_shared<CheckeredTexture>(Color(0.1, 0.1, 0.1), Color(0.9, 0.9, 0.9));
+    auto material_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
+    auto difflight = make_shared<DiffuseLight>(Color(4, 4, 4));
+    auto material_left = make_shared<Dielectric>(1.5);
+    auto material_right = make_shared<Metal>(Color(0.8, 0.6, 0.2), 0.0);
+
+    world.add(make_shared<Sphere>(point3(0.0, -100.5, -1.0), 100.0, make_shared<Lambertian>(checker)));
+
+    world.add(make_shared<Sphere>(point3(0.0, 0.0, -1.0), 0.5, difflight));
+    world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), 0.5, material_left));
+    world.add(make_shared<Sphere>(point3(-1.0, 0.0, -1.0), -0.45, material_left));
+    world.add(make_shared<Sphere>(point3(1.0, 0.0, -1.0), 0.5, material_right));
+
+    return world;
+}
+void write_color(std::ofstream& out, Color pixel_color, int samples_per_pixel)
 {
 
     double avg = 1. / samples_per_pixel;
@@ -93,7 +141,7 @@ void write_color(std::ofstream& out, color pixel_color, int samples_per_pixel)
 bool createGradientPPM(std::string filename)
 {
     std::ofstream myfile;
-    myfile.open(filename + ".ppm");
+    myfile.open(filename);
     if (!myfile.is_open())
     {
         return false;
@@ -112,7 +160,7 @@ bool createGradientPPM(std::string filename)
             double g = double(j) / (image_height-1);
             double b = 0.25;
 
-            color pixelcolor(r, g, b);
+            Color pixelcolor(r, g, b);
             write_color(myfile, pixelcolor, 100);
         }
     }
@@ -121,46 +169,54 @@ bool createGradientPPM(std::string filename)
     return true;
 } 
 
-color ray_color(const ray& r, const hittable &world, int depth)
+Color get_ray_color(const ray& r, const hittable &world, int depth, const Color &backgroundColor)
 {
     hit_record rec;
 
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if (depth <= 0)
-        return color(0, 0, 0);
+        return Color();
+
+
     //Setting t_min = 0.001 instead of 0 gets rid of the shadow acne problem
-    if (world.hit(r, 0.001, infinity, rec))
+    if (!world.hit(r, 0.001, infinity, rec))
     {
-        ray scattered;
-        color attenuation; //value of obsorbed color 
-        if (rec.material_ptr->scatter(r, rec, attenuation, scattered))
-        {
-            return attenuation * ray_color(scattered, world, depth-1);
-        }
-        return color(0, 0, 0);
+        //nothing hit, return background color
+        return backgroundColor;
     }
-    //return background
-    vec3 unit_dir = unit_vector(r.direction());
-    double t = 0.5 * (unit_dir.y() + 1.0);
-    return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+
+    ray scattered;
+    Color attenuation; //value of obsorbed color 
+    Color emitted = rec.material_ptr->color_emitted(rec.u, rec.v, rec.p); //if Material is light emitting
+    if (rec.material_ptr->scatter(r, rec, attenuation, scattered))
+    {
+        return emitted + attenuation * get_ray_color(scattered, world, depth - 1, backgroundColor);
+    }
+    else
+        return emitted;
 }
 
 
 int main()
 {
     // World
-    auto world = random_scene();
+    //auto world = random_scene();
+    HittableList world = initial_scene();
+    //HittableList world = earth_scene();
+    //HittableList world = simple_light();
 
     //Image
-    std::string imagename = "image13Final.ppm";
+    std::string imagename = "image19.ppm";
     const auto aspect_ratio = 3.0 / 2.0;
     const int w = 400;
     const int h = static_cast<int>(w / aspect_ratio);
-    const int samples_per_pixel = 40;
-    const int max_depth = 10;
+    const int samples_per_pixel = 70;
+    const int max_depth = 15;
+    Color background(0.7, 0.8, 1.0);
 
     // Camera
-    point3 cameraPosition(13, 2, 3);
+    //point3 cameraPosition(13, 2, 3);
+    point3 cameraPosition(0, 0, 0);
     point3 cameraLookAt(0, 0, 0);
     vec3 cameraUp(0, 1, 0);
     auto dist_to_focus = 10.0;
@@ -183,12 +239,12 @@ int main()
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < w; i++)
         {
-            color pixel_color(0, 0, 0);
+            Color pixel_color(0, 0, 0);
             for (int s = 0; s < samples_per_pixel; ++s) {
                 auto u = double(i) / (w - 1);
                 auto v = double(j) / (h - 1);
                 ray r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, world, max_depth);
+                pixel_color += get_ray_color(r, world, max_depth, background);
             }
 
             write_color(myfile, pixel_color, samples_per_pixel);

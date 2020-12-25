@@ -6,11 +6,11 @@
 #include <vector>
 
 
-class hittable_list : public hittable
+class HittableList : public hittable
 {
     public: 
-        hittable_list(){}
-        hittable_list(std::shared_ptr<hittable> object)
+        HittableList(){}
+        HittableList(std::shared_ptr<hittable> object)
         {
             add(object);
         }
@@ -30,7 +30,7 @@ class hittable_list : public hittable
       
 };
 
-bool hittable_list::hit(const ray& r, const double& t_min, const double& t_max, hit_record& rec) const
+bool HittableList::hit(const ray& r, const double& t_min, const double& t_max, hit_record& rec) const
 {
     hit_record temp_rec;
     bool hit_anything = false;

@@ -1,6 +1,8 @@
 #pragma once
 
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "external/stb-image/stb_image.h"
 #include <math.h>
 #include <limits>
 #include <memory>

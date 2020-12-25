@@ -16,6 +16,8 @@ class Sphere : public hittable
         Sphere(point3 _center, double _radius, std::shared_ptr<Material> _material) :center(_center), radius(_radius), material(_material) {}
 
         virtual bool hit(const ray& r, const double& min_t, const double& max_t, hit_record& hitrecord) const override;
+        static void get_uv_coordinates(const point3 &p, double& u, double& v);
+
     private:
         point3 center;
         double radius;
@@ -44,11 +46,29 @@ bool Sphere::hit(const ray& r, const double& t_min, const double& t_max, hit_rec
 
     rec.t = root;
     rec.p = r.at(rec.t);
-    rec.normal = (rec.p - center) / radius;
-    rec.material_ptr = material;
-
     vec3 outward_normal = (rec.p - center) / radius;
     rec.set_face_normal(r, outward_normal);
+    get_uv_coordinates(outward_normal, rec.u, rec.v);
+    rec.material_ptr = material;
 
     return true;
+}
+
+void Sphere::get_uv_coordinates(const point3& p, double& u, double& v)
+{
+    // p: a given point on the sphere of radius one, centered at the origin.
+    // u: returned value [0,1] of angle around the Y axis from X=-1.
+    // v: returned value [0,1] of angle from Y=-1 to Y=+1.
+    //     <1 0 0> yields <0.50 0.50>       <-1  0  0> yields <0.00 0.50>
+    //     <0 1 0> yields <0.50 1.00>       < 0 -1  0> yields <0.50 0.00>
+    //     <0 0 1> yields <0.25 0.50>       < 0  0 -1> yields <0.75 0.50>
+
+    double theta = acos(-p.y());
+    double phi = atan2(-p.z(), p.x()) + pi;
+
+    //assert(!isnan(theta));
+    //assert(!isnan(phi));
+
+    u = phi / (2 * pi);
+    v = theta / pi;
 }

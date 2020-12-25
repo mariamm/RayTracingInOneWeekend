@@ -1,38 +1,44 @@
 #pragma once
 
 #include "util.h"
+#include "texture.h"
 #include "ray.h"
 #include "hittable.h"
 
 class Material {
     public:
-        virtual bool scatter(const ray& ray_in, const hit_record& rec, color& attenuation, ray& scatter_ray) const = 0;
+        virtual Color color_emitted(double u, double v, const point3& p) const 
+        {
+            return Color(0, 0, 0);
+        }
+        virtual bool scatter(const ray& ray_in, const hit_record& rec, Color& attenuation, ray& scatter_ray) const = 0;
 };
 
 class Lambertian : public Material
 {
     public:
-    Lambertian(const color &_albedo) : albedo(_albedo) {}
+    Lambertian(const Color& a) : albedo(make_shared<SolidColor>(a)) {}
+    Lambertian(shared_ptr<Texture> _albedo) : albedo(_albedo) {}
     
-        virtual bool scatter(const ray& ray_in, const hit_record& rec, color& attenuation, ray& scatter_ray) const override
+        virtual bool scatter(const ray& ray_in, const hit_record& rec, Color& attenuation, ray& scatter_ray) const override
         {
             //Diffuse reflection of randomly scattered rays
             auto scatter_direction = rec.normal + random_unit_vector();
             if (scatter_direction.near_zero())
                 scatter_direction = rec.normal;
             scatter_ray = ray(rec.p, scatter_direction, ray_in.time());
-            attenuation = albedo;
+            attenuation = albedo->colorValue(rec.u, rec.v, rec.p);
             return true;
         }
     private:
-        color albedo;
+        shared_ptr<Texture> albedo;
 };
 
 class Metal : public Material
 {
     public:
-    Metal(const color& _albedo, double _fuzz) : albedo(_albedo), fuzz(std::min(_fuzz, 1.0)) {}
-    virtual bool scatter(const ray& ray_in, const hit_record& rec, color& attenuation, ray& scatter_ray) const override
+    Metal(Color _albedo, double _fuzz) : albedo(_albedo), fuzz(std::min(_fuzz, 1.0)) {}
+    virtual bool scatter(const ray& ray_in, const hit_record& rec, Color& attenuation, ray& scatter_ray) const override
     {
         vec3 reflected = reflect(ray_in.direction(), rec.normal);
         //scattered is the left over of what wasn't directly reflected
@@ -41,7 +47,7 @@ class Metal : public Material
         return (dot(scatter_ray.direction(), rec.normal) > 0);
     }
 private:
-    color albedo;
+    Color albedo;
     double fuzz;
 };
 
@@ -49,9 +55,9 @@ class Dielectric : public Material
 {
     public: 
         Dielectric( double refraction_index):  refractionIndex(refraction_index) {}
-        virtual bool scatter(const ray& ray_in, const hit_record& rec, color& attenuation, ray& scatter_ray) const override
+        virtual bool scatter(const ray& ray_in, const hit_record& rec, Color& attenuation, ray& scatter_ray) const override
         {
-            attenuation = color(1.0, 1.0, 1.0);
+            attenuation = Color(1.0, 1.0, 1.0);
             double refraction_ratio = rec.front_face ? (1.0 / refractionIndex) : refractionIndex;
 
             vec3 unit_direction = unit_vector(ray_in.direction());
@@ -77,4 +83,26 @@ class Dielectric : public Material
             r0 = r0 * r0;
             return r0 + (1 - r0) * pow((1 - cosine), 5);
         }
+};
+
+
+class DiffuseLight : public Material
+{
+    public:
+
+        DiffuseLight(shared_ptr<Texture> texture) : emit(texture){}
+        DiffuseLight(Color color)
+        {
+            emit = make_shared<SolidColor>(color);
+        }
+        virtual bool scatter(const ray& ray_in, const hit_record& rec, Color& attenuation, ray& scatter_ray) const override
+        {
+            return false;
+        }
+
+        virtual Color color_emitted(double u, double v, const point3& p)
+        {
+            return emit->colorValue(u, v, p);
+        }
+        shared_ptr<Texture> emit;
 };
