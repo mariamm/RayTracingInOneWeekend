@@ -15,7 +15,7 @@ class Sphere : public Hittable
         }
         Sphere(Point3 _center, double _radius, std::shared_ptr<Material> _material) :center(_center), radius(_radius), material(_material) {}
 
-        virtual bool hit(const Ray& r, const double& min_t, const double& max_t, hit_record& hitrecord) const override;
+        virtual bool hit(const Ray& r, const double& min_t, const double& max_t, HitRecord& hitrecord) const override;
         static void get_uv_coordinates(const Point3 &p, double& u, double& v);
 
         virtual bool boundingBox(double time0, double time1, aabb& output_box) const override;
@@ -27,7 +27,7 @@ class Sphere : public Hittable
 };
 
 
-bool Sphere::hit(const Ray& r, const double& t_min, const double& t_max, hit_record& rec) const
+bool Sphere::hit(const Ray& r, const double& t_min, const double& t_max, HitRecord& rec) const
 {
     Vec3 oc = r.origin() - center;
     auto a = r.direction().length_squared();
@@ -77,5 +77,10 @@ void Sphere::get_uv_coordinates(const Point3& p, double& u, double& v)
 
 bool Sphere::boundingBox(double time0, double time1, aabb& output_box) const
 {
-    return false;
+    Point3 minimum = center - radius;
+    Point3 maximum = center + radius;;
+
+    output_box = aabb(minimum, maximum);
+
+    return true;
 }

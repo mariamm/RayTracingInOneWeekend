@@ -2,7 +2,10 @@
 
 
 #define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+
 #include "external/stb-image/stb_image.h"
+#include "external/stb-image/stb_image_write.h"
 #include <math.h>
 #include <limits>
 #include <memory>
@@ -35,4 +38,9 @@ inline double random_double() {
 inline double random_double(double minPoint, double maxPoint) {
     // Returns a random real in [min,max).
     return minPoint + (maxPoint - minPoint) * random_double();
+}
+
+inline int random_int(int min, int max)
+{
+    return rand() % (max + 1 - min) + min;
 }

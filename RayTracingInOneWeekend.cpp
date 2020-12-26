@@ -11,6 +11,7 @@
 #include "hittable_list.h"
 #include "camera.h"
 #include "material.h"
+#include "bvh_node.h"
 
 using std::shared_ptr;
 using std::make_shared;
@@ -38,8 +39,8 @@ HittableList random_scene() {
     HittableList world;
 
     auto ground_material = make_shared<Lambertian>(COLOR_GREY);
-    world.add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
 
+    HittableList smallSpheres;
     for (int a = -11; a < 11; a++) 
     {
         for (int b = -11; b < 11; b++) 
@@ -58,7 +59,7 @@ HittableList random_scene() {
                     sphere_material = make_shared<Lambertian>(albedo);
 
                     auto center2 = center + Vec3(0, random_double(0, .5), 0);
-                    world.add(make_shared<MovingSphere>(0.0, 1.0,
+                    smallSpheres.add(make_shared<MovingSphere>(0.0, 1.0,
                         center, center2,  0.2, sphere_material));
                 }
                 else if (choose_mat < 0.95) 
@@ -67,27 +68,32 @@ HittableList random_scene() {
                     auto albedo = Color::random(0.5, 1);
                     auto fuzz = random_double(0, 0.5);
                     sphere_material = make_shared<Metal>(albedo, fuzz);
-                    world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+                    smallSpheres.add(make_shared<Sphere>(center, 0.2, sphere_material));
                 }
                 else 
                 {
                     // glass
                     sphere_material = make_shared<Dielectric>(1.5);
-                    world.add(make_shared<Sphere>(center, 0.2, sphere_material));
+                    smallSpheres.add(make_shared<Sphere>(center, 0.2, sphere_material));
                 }
             }
         }
     }
 
+
+    HittableList largeSpheres;
+
     auto material1 = make_shared<Dielectric>(1.5);
-    world.add(make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
-
     auto material2 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
-    world.add(make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
-
     auto material3 = make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
-    world.add(make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
 
+    largeSpheres.add(make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
+    largeSpheres.add(make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
+    largeSpheres.add(make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
+
+    world.add(make_shared<BvhNode>(smallSpheres, 0, 1));
+    world.add(make_shared<BvhNode>(largeSpheres, 0, 1));
+    world.add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
     return world;
 }
 
@@ -135,6 +141,20 @@ void write_color(std::ofstream& out, Color pixel_color, int samples_per_pixel)
         << static_cast<int>(255.999 * b) << '\n';
 }
 
+Color calculate_color(Color pixel_color, int samples_per_pixel)
+{
+    double avg = 1. / samples_per_pixel;
+    double r = clamp(pixel_color.x() * avg, 0., 0.999);
+    double g = clamp(pixel_color.y() * avg, 0., 0.999);
+    double b = clamp(pixel_color.z() * avg, 0., 0.999);
+
+    //gamma corrected:
+    r = std::sqrt(r);
+    g = std::sqrt(g);
+    b = std::sqrt(b);
+
+    return Color(r, g, b);
+}
 bool createGradientPPM(std::string filename)
 {
     std::ofstream myfile;
@@ -168,7 +188,7 @@ bool createGradientPPM(std::string filename)
 
 Color get_ray_color(const Ray& r, const Hittable &world, int depth, const Color &backgroundColor)
 {
-    hit_record rec;
+    HitRecord rec;
 
     // If we've exceeded the ray bounce limit, no more light is gathered.
     if (depth <= 0)
@@ -193,7 +213,12 @@ Color get_ray_color(const Ray& r, const Hittable &world, int depth, const Color 
         return emitted;
 }
 
+void writeImage(const unsigned char* image, const char* filename, int h, int w, int color_channels) 
+{
+    //int result = stbi_write_png(filename, w, h, color_channels, image, 3 * w);
+    int result = stbi_write_bmp(filename, w, h, color_channels, image);
 
+}
 int main()
 {
     // World
@@ -208,7 +233,7 @@ int main()
     auto aperture = 0.1;
     double fieldOfView_deg = 20.;
 
-    switch (3) 
+    switch (4) 
     {
     case 1:
         world = random_scene();
@@ -251,42 +276,43 @@ int main()
     }
 
     //Image
-    std::string imagename = "image29.ppm";
+    const char* imagename = "result_images\\image32.bmp";
     const auto aspect_ratio = 3.0 / 2.0;
     const int w = 400;
     const int h = static_cast<int>(w / aspect_ratio);
+    int size = 3 * w * h;
+    unsigned char* image = new unsigned char[size];
+
+    //Render parameters
     const int samples_per_pixel = 70;
     const int max_depth = 15;
 
+
     Camera cam(cameraPosition, cameraLookAt, cameraUp, fieldOfView_deg, aspect_ratio, dist_to_focus, aperture);
 
-    std::ofstream myfile;
-    myfile.open(imagename);
-    if (!myfile.is_open())
-    {
-        return 0;
-    }
-
     //render
-    myfile << "P3\n" << w << ' ' << h << "\n255\n";
-    for (int j = h - 1; j >= 0; j--)
+    int x = 0;
+    for (int row = h-1; row >= 0 ; row--)
     {
-        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
-        for (int i = 0; i < w; i++)
+        std::cerr << "\rScanlines remaining: " << row << ' ' << std::flush;
+        for (int col = 0; col < w; col++)
         {
             Color pixel_color(0, 0, 0);
             for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = double(i) / (w - 1);
-                auto v = double(j) / (h - 1);
+                auto u = double(col) / (w - 1);
+                auto v = double(row) / (h - 1);
                 Ray r = cam.get_ray(u, v);
                 pixel_color += get_ray_color(r, world, max_depth, background);
             }
-
-            write_color(myfile, pixel_color, samples_per_pixel);
+            Color avg_color = calculate_color(pixel_color, samples_per_pixel);
+            image[x] = static_cast<unsigned char>(255.999 * avg_color.x());
+            image[x++] = static_cast<unsigned char>(255.999 * avg_color.y());
+            image[x++] = static_cast<unsigned char>(255.999 * avg_color.z());
         }
     }
+    writeImage(image, imagename, h, w, 3);
+
+    delete [] image;
+
     std::cerr << "\nDone.\n";
-    myfile.close();
-
-
 }

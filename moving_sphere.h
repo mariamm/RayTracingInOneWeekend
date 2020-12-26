@@ -17,7 +17,7 @@ class MovingSphere : public Hittable
         MovingSphere(double time_0, double time_1, Point3 center_0, Point3 center_1, double radius_, shared_ptr<Material> material) 
             : t0(time_0), t1(time_1), c0(center_0), c1(center_1), radius(radius_), m(material){}
 
-        virtual bool hit(const Ray& r, const double& min_t, const double& max_t, hit_record& hitrecord) const override;
+        virtual bool hit(const Ray& r, const double& min_t, const double& max_t, HitRecord& hitrecord) const override;
         virtual bool boundingBox(double time0, double time1, aabb& output_box) const override;
 
         Point3 centerAtTime(double time) const
@@ -33,7 +33,7 @@ class MovingSphere : public Hittable
         shared_ptr<Material> m;
 };
 
-bool MovingSphere::hit(const Ray& r, const double& min_t, const double& max_t, hit_record& hitrecord) const
+bool MovingSphere::hit(const Ray& r, const double& min_t, const double& max_t, HitRecord& hitrecord) const
 {
     Point3 center = centerAtTime(r.time());
     Vec3 oc = r.origin() - center;
@@ -66,5 +66,15 @@ bool MovingSphere::hit(const Ray& r, const double& min_t, const double& max_t, h
 
 bool MovingSphere::boundingBox(double time0, double time1, aabb& output_box) const
 {
-    return false;
+    auto center0 = centerAtTime(t0);
+    auto center1 = centerAtTime(t1);
+
+    output_box = aabb();
+    aabb box1 = aabb( center0- radius,  center0 + radius);
+    output_box.surround(box1);
+
+    aabb box2 = aabb(center1 - radius, center1 + radius);
+    output_box.surround(box2);
+
+    return true;
 }

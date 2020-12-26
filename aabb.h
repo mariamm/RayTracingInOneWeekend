@@ -46,6 +46,14 @@ public:
         }
         return true;
     }
+    void surround(const aabb& other)
+    {
+        for(int i = 0; i<3; i++)
+        {
+            maxPoint[i] = std::min(minPoint[i], other.maximum()[i]);
+            maxPoint[i] = std::max(maxPoint[i], other.maximum()[i]); 
+        }
+    }
 
 private:
     Point3 minPoint, maxPoint;

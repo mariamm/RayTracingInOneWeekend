@@ -103,6 +103,11 @@ inline Vec3 operator+(const Vec3& v, double offset)
     return Vec3(v.x() + offset, v.y() + offset, v.z() + offset);
 }
 
+inline Vec3 operator-(const Vec3& v, double offset)
+{
+    return Vec3(v.x() - offset, v.y() - offset, v.z() - offset);
+}
+
 inline Vec3 operator+(const Vec3& v, const Vec3& u)
 {
     return Vec3(v.x() + u.x(), v.y() + u.y(), v.z() + u.z());

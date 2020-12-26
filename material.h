@@ -11,7 +11,7 @@ class Material {
         {
             return Color(0, 0, 0);
         }
-        virtual bool scatter(const Ray& ray_in, const hit_record& rec, Color& attenuation, Ray& scatter_ray) const = 0;
+        virtual bool scatter(const Ray& ray_in, const HitRecord& rec, Color& attenuation, Ray& scatter_ray) const = 0;
 };
 
 class Lambertian : public Material
@@ -20,7 +20,7 @@ class Lambertian : public Material
     Lambertian(const Color& a) : albedo(make_shared<SolidColor>(a)) {}
     Lambertian(shared_ptr<Texture> _albedo) : albedo(_albedo) {}
     
-        virtual bool scatter(const Ray& ray_in, const hit_record& rec, Color& attenuation, Ray& scatter_ray) const override
+        virtual bool scatter(const Ray& ray_in, const HitRecord& rec, Color& attenuation, Ray& scatter_ray) const override
         {
             //Diffuse reflection of randomly scattered rays
             auto scatter_direction = rec.normal + random_unit_vector();
@@ -38,7 +38,7 @@ class Metal : public Material
 {
     public:
     Metal(Color _albedo, double _fuzz) : albedo(_albedo), fuzz(std::min(_fuzz, 1.0)) {}
-    virtual bool scatter(const Ray& ray_in, const hit_record& rec, Color& attenuation, Ray& scatter_ray) const override
+    virtual bool scatter(const Ray& ray_in, const HitRecord& rec, Color& attenuation, Ray& scatter_ray) const override
     {
         Vec3 reflected = reflect(ray_in.direction(), rec.normal);
         //scattered is the left over of what wasn't directly reflected
@@ -55,7 +55,7 @@ class Dielectric : public Material
 {
     public: 
         Dielectric( double refraction_index):  refractionIndex(refraction_index) {}
-        virtual bool scatter(const Ray& ray_in, const hit_record& rec, Color& attenuation, Ray& scatter_ray) const override
+        virtual bool scatter(const Ray& ray_in, const HitRecord& rec, Color& attenuation, Ray& scatter_ray) const override
         {
             attenuation = Color(1.0, 1.0, 1.0);
             double refraction_ratio = rec.front_face ? (1.0 / refractionIndex) : refractionIndex;
@@ -95,7 +95,7 @@ class Light : public Material
         {
             emit = make_shared<SolidColor>(intensity*color);
         }
-        virtual bool scatter(const Ray& ray_in, const hit_record& rec, Color& attenuation, Ray& scatter_ray) const override
+        virtual bool scatter(const Ray& ray_in, const HitRecord& rec, Color& attenuation, Ray& scatter_ray) const override
         {
             return false;
         }
