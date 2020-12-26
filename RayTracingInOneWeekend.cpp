@@ -215,8 +215,7 @@ Color get_ray_color(const Ray& r, const Hittable &world, int depth, const Color 
 
 void writeImage(const unsigned char* image, const char* filename, int h, int w, int color_channels) 
 {
-    //int result = stbi_write_png(filename, w, h, color_channels, image, 3 * w);
-    int result = stbi_write_bmp(filename, w, h, color_channels, image);
+    int result = stbi_write_png(filename, w, h, color_channels, image, 3 * w);
 
 }
 int main()
@@ -233,7 +232,7 @@ int main()
     auto aperture = 0.1;
     double fieldOfView_deg = 20.;
 
-    switch (4) 
+    switch (1) 
     {
     case 1:
         world = random_scene();
@@ -276,43 +275,48 @@ int main()
     }
 
     //Image
-    const char* imagename = "result_images\\image32.bmp";
+    const char* imagename = "result_images\\image35.ppm";
+
     const auto aspect_ratio = 3.0 / 2.0;
     const int w = 400;
     const int h = static_cast<int>(w / aspect_ratio);
-    int size = 3 * w * h;
+    size_t size = w * h * 3;
     unsigned char* image = new unsigned char[size];
 
-    //Render parameters
+    //Rendering Parameters
     const int samples_per_pixel = 70;
     const int max_depth = 15;
 
-
     Camera cam(cameraPosition, cameraLookAt, cameraUp, fieldOfView_deg, aspect_ratio, dist_to_focus, aperture);
 
-    //render
-    int x = 0;
-    for (int row = h-1; row >= 0 ; row--)
+    std::ofstream myfile;
+    myfile.open(imagename);
+    if (!myfile.is_open())
     {
-        std::cerr << "\rScanlines remaining: " << row << ' ' << std::flush;
-        for (int col = 0; col < w; col++)
+        return 0;
+    }
+
+    //render
+    myfile << "P3\n" << w << ' ' << h << "\n255\n";
+
+    for (int j = h - 1; j >= 0; j--)
+    {
+        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+        for (int i = 0; i < w; i++)
         {
             Color pixel_color(0, 0, 0);
             for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = double(col) / (w - 1);
-                auto v = double(row) / (h - 1);
+                auto u = double(i + random_double()) / (w - 1);
+                auto v = double(j + random_double()) / (h - 1);
                 Ray r = cam.get_ray(u, v);
                 pixel_color += get_ray_color(r, world, max_depth, background);
             }
-            Color avg_color = calculate_color(pixel_color, samples_per_pixel);
-            image[x] = static_cast<unsigned char>(255.999 * avg_color.x());
-            image[x++] = static_cast<unsigned char>(255.999 * avg_color.y());
-            image[x++] = static_cast<unsigned char>(255.999 * avg_color.z());
+            write_color(myfile, pixel_color, samples_per_pixel);
         }
     }
-    writeImage(image, imagename, h, w, 3);
-
-    delete [] image;
 
     std::cerr << "\nDone.\n";
+    myfile.close();
+
+
 }
