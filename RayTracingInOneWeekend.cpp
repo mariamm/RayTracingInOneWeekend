@@ -37,7 +37,7 @@ HittableList initial_scene()
 
     return world;
 }
-HittableList random_scene() {
+HittableList rt_one_weekend_scene() {
     HittableList world;
 
     auto ground_material = make_shared<Lambertian>(COLOR_GREY);
@@ -150,6 +150,66 @@ HittableList cornell_box()
 
     return world;
 }
+HittableList rt_next_week_scene()
+{
+    HittableList boxes1;
+    auto ground = make_shared<Lambertian>(Color(0.48, 0.83, 0.53));
+
+    const int boxes_per_side = 20;
+    for (int i = 0; i < boxes_per_side; i++) {
+        for (int j = 0; j < boxes_per_side; j++) {
+            auto w = 100.0;
+            auto x0 = -1000.0 + i * w;
+            auto z0 = -1000.0 + j * w;
+            auto y0 = 0.0;
+            auto x1 = x0 + w;
+            auto y1 = random_double(1, 101);
+            auto z1 = z0 + w;
+
+            boxes1.add(make_shared<Box>(ground, Point3(x0, y0, z0), Point3(x1, y1, z1)));
+        }
+    }
+
+    HittableList objects;
+
+    objects.add(make_shared<BvhNode>(boxes1, 0, 1));
+
+    auto light = make_shared<Light>(COLOR_WHITE, 7);
+    objects.add(make_shared<Rect_xz>(light, 123, 423, 147, 412, 554));
+
+   /* auto center1 = Point3(400, 400, 200);
+    auto center2 = center1 + Vec3(30, 0, 0);
+    auto moving_sphere_material = make_shared<Lambertian>(Color(0.7, 0.3, 0.1));
+    objects.add(make_shared<MovingSphere>( 0, 1, center1, center2, 50, moving_sphere_material));
+
+    objects.add(make_shared<Sphere>(Point3(260, 150, 45), 50, make_shared<Dielectric>(1.5)));
+    objects.add(make_shared<Sphere>(Point3(0, 150, 145), 50, make_shared<Metal>(Color(0.8, 0.8, 0.9), 1.0)));
+
+    auto boundary = make_shared<Sphere>(Point3(360, 150, 145), 70, make_shared<Dielectric>(1.5));
+    objects.add(boundary);
+    //objects.add(make_shared<constant_medium>(boundary, 0.2, Color(0.2, 0.4, 0.9)));
+    boundary = make_shared<Sphere>(Point3(0, 0, 0), 5000, make_shared<Dielectric>(1.5));
+    //objects.add(make_shared<constant_medium>(boundary, .0001, Color(1, 1, 1)));
+
+    auto emat = make_shared<Lambertian>(make_shared<ImageTexture>("earthmap.jpg"));
+    objects.add(make_shared<Sphere>(Point3(400, 200, 400), 100, emat));
+    //auto pertext = make_shared<noise_texture>(0.1);
+    //objects.add(make_shared<Sphere>(Point3(220, 280, 300), 80, make_shared<Lambertian>(pertext)));
+    objects.add(make_shared<Sphere>(Point3(220, 280, 300), 80, make_shared<Lambertian>(COLOR_TEAL)));
+
+    HittableList boxes2;
+    auto white = make_shared<Lambertian>(Color(.73, .73, .73));
+    //int ns = 1000;
+    int ns = 50;
+    for (int j = 0; j < ns; j++) 
+    {
+        boxes2.add(make_shared<Sphere>(Point3::random(0, 165), 10, white));
+    }
+
+    //objects.add(make_shared<translate>( make_shared<rotate_y>( make_shared<bvh_node>(boxes2, 0.0, 1.0), 15), vec3(-100, 270, 395) ) );
+    objects.add(make_shared<BvhNode>(boxes2, 0.0, 1.0));*/
+    return objects;
+}
 
 Color calculate_color(Color pixel_color, int samples_per_pixel)
 {
@@ -234,7 +294,8 @@ Color get_ray_color(const Ray& r, const Hittable &world, int depth, const Color 
 void writeImage(const unsigned char* image, const char* filename, int h, int w, int color_channels) 
 {
     int result = stbi_write_png(filename, w, h, color_channels, image, 3 * w);
-
+    if (result == 0)
+        std::cerr << "Failed to write image.";
 }
 int main()
 {
@@ -255,28 +316,28 @@ int main()
         "1 - Random Scene (Book 1 cover) \n"
         "2 - Initial Scene (3 Spheres) \n"
         "3 - Simple light scene \n"
-        "4 - Earth Scene (with JPG Texture)\n" 
-        "5 - Cornell Box"<< std::endl;
-
+        "4 - Earth Scene (with JPG Texture)\n"
+        "5 - Cornell Box \n"
+        "6 - Random Scene (Book 2 cover) \n";
 
     std::cin >> choice;
 
     //Image
-    const char* imagepng = "result_images\\Cornellbox.png";
-    const auto aspect_ratio = 1.0;// 3.0 / 2.0;
-    const int w = 600;
-    const int h = static_cast<int>(w / aspect_ratio);
-    size_t size = w * h * 3;
+    const char* imagepng = "result_images\\book1cover1.png";
+    auto aspect_ratio = 1.0;// 3.0 / 2.0;
+    int image_width = 1000;
+    int image_height = static_cast<int>(image_width / aspect_ratio);
+    size_t size = image_width * image_height * 3;
     unsigned char* image = new unsigned char[size];
 
     //Rendering Parameters
-    const int samples_per_pixel = 200;
-    const int max_depth = 30;
+    int samples_per_pixel = 100;
+    int max_depth = 50;
 
     switch (choice) 
     {
     case 1:
-        world = random_scene();
+        world = rt_one_weekend_scene();
         background = Color(0.70, 0.80, 1.00);
         cameraPosition = Point3(13, 2, 3);
         cameraLookAt = Point3(0, 0, 0);
@@ -308,10 +369,18 @@ int main()
         cameraLookAt = Point3(0, 0, 0);
         fieldOfView_deg = 20.0;
         break;
+
     case 5:
         world = cornell_box();
         background = Color(0.1, 0.1, 0.1); //to add some light 
         cameraPosition = Point3(278, 278, -800);
+        cameraLookAt = Point3(278, 278, 0);
+        fieldOfView_deg = 40.0;
+        break;
+    case 6:
+        world = rt_next_week_scene();
+        aspect_ratio = 1.0;
+        cameraPosition = Point3(478, 278, -600);
         cameraLookAt = Point3(278, 278, 0);
         fieldOfView_deg = 40.0;
         break;
@@ -326,32 +395,32 @@ int main()
 
     //render
 
-    for (int j = h - 1; j >= 0; j--)
+    for (int row = 0; row < image_height; row++)
     {
-        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+        std::cerr << "\rScanlines remaining: " << image_height-row << ' ' << std::flush;
         #pragma omp parallel for
-        for (int i = 0; i < w; i++)
+        for (int col = 0; col < image_width; col++)
         {
             Color pixel_color(0, 0, 0);
-            for (int s = 0; s < samples_per_pixel; ++s) 
+            #pragma omp parallel for
+            for (int s = 0; s < samples_per_pixel; s++) 
             {
-                auto u = double(i + random_double()) / (w - 1);
-                auto v = double(j + random_double()) / (h - 1);
+                auto u = double(col + random_double()) / (image_width - 1);
+                auto v = double(image_height-1-row + random_double()) / (image_height - 1);
                 Ray r = cam.get_ray(u, v);
                 pixel_color += get_ray_color(r, world, max_depth, background);
             }
 
             Color c = calculate_color(pixel_color, samples_per_pixel);
             
-            int invertJ = h - j - 1;
-            int x = 3 * invertJ * w + 3*i;
+            int x = 3 * row * image_width + 3*col;
             image[x] = static_cast<unsigned char>(c.x());
             image[x+1] = static_cast<unsigned char>(c.y());
             image[x+2] = static_cast<unsigned char>(c.z());
         }
     }
 
-    writeImage(image, imagepng, h, w, 3);
+    writeImage(image, imagepng, image_height, image_width, 3);
 
     delete[] image;
 
