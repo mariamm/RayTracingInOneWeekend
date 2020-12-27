@@ -96,7 +96,6 @@ HittableList random_scene() {
     world.add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
     return world;
 }
-
 HittableList earth_scene()
 {
     shared_ptr<Texture> earthTexture = make_shared<ImageTexture>("textures\\earthmap.jpg");
@@ -106,7 +105,6 @@ HittableList earth_scene()
     world.add(make_shared<Sphere>(Point3(), 2, earthMaterial));
     return world;
 }
-
 HittableList simple_light() 
 {
     HittableList world;
@@ -124,21 +122,6 @@ HittableList simple_light()
     
     return world;
 }
-void write_color(std::ofstream& out, Color pixel_color, int samples_per_pixel)
-{
-    double avg = 1. / samples_per_pixel;
-    double r = clamp(pixel_color.x() * avg, 0., 0.999);
-    double g = clamp(pixel_color.y() * avg, 0., 0.999);
-    double b = clamp(pixel_color.z() * avg, 0., 0.999);
-
-    //gamma corrected:
-    r = std::sqrt(r);
-    g = std::sqrt(g);
-    b = std::sqrt(b);
-    out << static_cast<int>(255.999 * r) << ' '
-        << static_cast<int>(255.999 * g) << ' '
-        << static_cast<int>(255.999 * b) << '\n';
-}
 
 Color calculate_color(Color pixel_color, int samples_per_pixel)
 {
@@ -152,8 +135,15 @@ Color calculate_color(Color pixel_color, int samples_per_pixel)
     g = std::sqrt(g);
     b = std::sqrt(b);
 
-
     return Color((255.999 * r),(255.999 * g), (255.999 * b));
+}
+
+void write_color(std::ofstream& out, Color pixel_color, int samples_per_pixel)
+{
+    Color c = calculate_color(pixel_color, samples_per_pixel);
+    out << static_cast<int>(255.999 * c.x()) << ' '
+        << static_cast<int>(255.999 * c.y()) << ' '
+        << static_cast<int>(255.999 * c.z()) << '\n';
 }
 bool createGradientPPM(std::string filename)
 {
@@ -232,7 +222,18 @@ int main()
     auto aperture = 0.1;
     double fieldOfView_deg = 20.;
 
-    switch (1) 
+    int choice = 5;
+    std::cout << "Choose scene: \n"
+        "1 - Random Scene (Book 1 cover) \n"
+        "2 - Initial Scene (3 Spheres) \n"
+        "3 - Simple light scene \n"
+        "4 - Earth Scene (with JPG Texture)" << std::endl;
+
+    std::cin >> choice;
+    if (choice < 1 || choice > 4)
+        choice = 5;
+
+    switch (choice) 
     {
     case 1:
         world = random_scene();
