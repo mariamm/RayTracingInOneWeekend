@@ -12,6 +12,7 @@
 #include "camera.h"
 #include "material.h"
 #include "bvh_node.h"
+#include "axis_rectangle.h"
 
 using std::shared_ptr;
 using std::make_shared;
@@ -122,6 +123,24 @@ HittableList simple_light()
     
     return world;
 }
+HittableList cornell_box()
+{
+    HittableList world;
+
+    auto red_material = make_shared<Lambertian>(Color(.65, .05, .05));
+    auto green_material = make_shared<Lambertian>(Color(.12, .45, .15));
+    auto white_material = make_shared<Lambertian>(Color(.73, .73, .73));
+    auto light_material = make_shared<Light>(COLOR_WHITE, 15);
+
+    world.add(make_shared<Rect_xz>(light_material, 213, 343, 227, 332, 554));
+    world.add(make_shared<Rect_yz>(red_material,   0, 555, 0, 555, 555));
+    world.add(make_shared<Rect_yz>(green_material, 0, 555, 0, 555, 0));
+    world.add(make_shared<Rect_xz>(white_material, 0, 555, 0, 555, 0));
+    world.add(make_shared<Rect_xz>(white_material, 0, 555, 0, 555, 555));
+    world.add(make_shared<Rect_xy>(white_material, 0, 555, 0, 555, 555));
+
+    return world;
+}
 
 Color calculate_color(Color pixel_color, int samples_per_pixel)
 {
@@ -227,11 +246,23 @@ int main()
         "1 - Random Scene (Book 1 cover) \n"
         "2 - Initial Scene (3 Spheres) \n"
         "3 - Simple light scene \n"
-        "4 - Earth Scene (with JPG Texture)" << std::endl;
+        "4 - Earth Scene (with JPG Texture)\n" 
+        "5 - Cornell Box"<< std::endl;
+
 
     std::cin >> choice;
-    if (choice < 1 || choice > 4)
-        choice = 5;
+
+    //Image
+    const char* imagepng = "result_images\\Empty_Cronellbox.png";
+    const auto aspect_ratio = 1.0;// 3.0 / 2.0;
+    const int w = 600;
+    const int h = static_cast<int>(w / aspect_ratio);
+    size_t size = w * h * 3;
+    unsigned char* image = new unsigned char[size];
+
+    //Rendering Parameters
+    const int samples_per_pixel = 200;
+    const int max_depth = 30;
 
     switch (choice) 
     {
@@ -268,24 +299,19 @@ int main()
         cameraLookAt = Point3(0, 0, 0);
         fieldOfView_deg = 20.0;
         break;
+    case 5:
+        world = cornell_box();
+        background = Color(0, 0, 0);
+        cameraPosition = Point3(278, 278, -800);
+        cameraLookAt = Point3(278, 278, 0);
+        fieldOfView_deg = 40.0;
+        break;
 
     default:
-    case 5:
         background = Color(0.0, 0.0, 0.0);
         break;
     }
 
-    //Image
-    const char* imagepng = "result_images\\image44.png";
-    const auto aspect_ratio = 3.0 / 2.0;
-    const int w = 400;
-    const int h = static_cast<int>(w / aspect_ratio);
-    size_t size = w * h * 3;
-    unsigned char* image = new unsigned char[size];
-
-    //Rendering Parameters
-    const int samples_per_pixel = 50;
-    const int max_depth = 15;
 
     Camera cam(cameraPosition, cameraLookAt, cameraUp, fieldOfView_deg, aspect_ratio, dist_to_focus, aperture);
 
