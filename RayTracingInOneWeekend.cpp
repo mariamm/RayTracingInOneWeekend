@@ -126,7 +126,6 @@ HittableList simple_light()
 }
 void write_color(std::ofstream& out, Color pixel_color, int samples_per_pixel)
 {
-
     double avg = 1. / samples_per_pixel;
     double r = clamp(pixel_color.x() * avg, 0., 0.999);
     double g = clamp(pixel_color.y() * avg, 0., 0.999);
@@ -153,7 +152,8 @@ Color calculate_color(Color pixel_color, int samples_per_pixel)
     g = std::sqrt(g);
     b = std::sqrt(b);
 
-    return Color(r, g, b);
+
+    return Color((255.999 * r),(255.999 * g), (255.999 * b));
 }
 bool createGradientPPM(std::string filename)
 {
@@ -232,7 +232,7 @@ int main()
     auto aperture = 0.1;
     double fieldOfView_deg = 20.;
 
-    switch (1) 
+    switch (4) 
     {
     case 1:
         world = random_scene();
@@ -275,8 +275,7 @@ int main()
     }
 
     //Image
-    const char* imagename = "result_images\\image35.ppm";
-
+    const char* imagepng = "result_images\\image36.png";
     const auto aspect_ratio = 3.0 / 2.0;
     const int w = 400;
     const int h = static_cast<int>(w / aspect_ratio);
@@ -284,39 +283,39 @@ int main()
     unsigned char* image = new unsigned char[size];
 
     //Rendering Parameters
-    const int samples_per_pixel = 70;
+    const int samples_per_pixel = 50;
     const int max_depth = 15;
 
     Camera cam(cameraPosition, cameraLookAt, cameraUp, fieldOfView_deg, aspect_ratio, dist_to_focus, aperture);
 
-    std::ofstream myfile;
-    myfile.open(imagename);
-    if (!myfile.is_open())
-    {
-        return 0;
-    }
-
     //render
-    myfile << "P3\n" << w << ' ' << h << "\n255\n";
 
+    int x = 0;
     for (int j = h - 1; j >= 0; j--)
     {
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < w; i++)
         {
             Color pixel_color(0, 0, 0);
-            for (int s = 0; s < samples_per_pixel; ++s) {
+            for (int s = 0; s < samples_per_pixel; ++s) 
+            {
                 auto u = double(i + random_double()) / (w - 1);
                 auto v = double(j + random_double()) / (h - 1);
                 Ray r = cam.get_ray(u, v);
                 pixel_color += get_ray_color(r, world, max_depth, background);
             }
-            write_color(myfile, pixel_color, samples_per_pixel);
+
+            Color c = calculate_color(pixel_color, samples_per_pixel);
+            image[x++] = static_cast<unsigned char>(c.x());
+            image[x++] = static_cast<unsigned char>(c.y());
+            image[x++] = static_cast<unsigned char>(c.z());
         }
     }
 
-    std::cerr << "\nDone.\n";
-    myfile.close();
+    writeImage(image, imagepng, h, w, 3);
 
+    delete[] image;
+
+    std::cerr << "\nDone.\n";
 
 }
