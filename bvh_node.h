@@ -108,13 +108,11 @@ bool BvhNode::hit(const Ray& r, const double& min_t, const double& max_t, HitRec
     if (!bBox.hit(r, min_t, max_t))
         return false;
 
-    if(leftNode->hit(r, min_t, max_t, hitrecord))
-        return true;
+    bool hitleft = (leftNode->hit(r, min_t, max_t, hitrecord));
+    double max_t_temp = hitleft ? std::min(max_t, hitrecord.t) : max_t;
+    bool hitright = rightNode->hit(r, min_t, max_t_temp, hitrecord);
 
-    if(rightNode->hit(r, min_t, max_t, hitrecord))
-        return true;
-
-    return false;
+    return hitleft || hitright;
 }
 
 bool BvhNode::boundingBox(double time0, double time1, aabb& output_box) const

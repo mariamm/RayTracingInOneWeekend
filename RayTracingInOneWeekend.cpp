@@ -232,7 +232,7 @@ int main()
     auto aperture = 0.1;
     double fieldOfView_deg = 20.;
 
-    switch (4) 
+    switch (1) 
     {
     case 1:
         world = random_scene();
@@ -275,7 +275,7 @@ int main()
     }
 
     //Image
-    const char* imagepng = "result_images\\image36.png";
+    const char* imagepng = "result_images\\image44.png";
     const auto aspect_ratio = 3.0 / 2.0;
     const int w = 400;
     const int h = static_cast<int>(w / aspect_ratio);
@@ -290,10 +290,10 @@ int main()
 
     //render
 
-    int x = 0;
     for (int j = h - 1; j >= 0; j--)
     {
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+        #pragma omp parallel for
         for (int i = 0; i < w; i++)
         {
             Color pixel_color(0, 0, 0);
@@ -306,9 +306,12 @@ int main()
             }
 
             Color c = calculate_color(pixel_color, samples_per_pixel);
-            image[x++] = static_cast<unsigned char>(c.x());
-            image[x++] = static_cast<unsigned char>(c.y());
-            image[x++] = static_cast<unsigned char>(c.z());
+            
+            int invertJ = h - j - 1;
+            int x = 3 * invertJ * w + 3*i;
+            image[x] = static_cast<unsigned char>(c.x());
+            image[x+1] = static_cast<unsigned char>(c.y());
+            image[x+2] = static_cast<unsigned char>(c.z());
         }
     }
 
