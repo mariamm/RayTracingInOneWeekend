@@ -13,6 +13,7 @@
 #include "material.h"
 #include "bvh_node.h"
 #include "axis_rectangle.h"
+#include "box.h"
 
 using std::shared_ptr;
 using std::make_shared;
@@ -120,6 +121,9 @@ HittableList simple_light()
     world.add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, lambertian_material));
     world.add(make_shared<Sphere>(Point3(0.0, 100.0, -1.0), 50, light_material));
     world.add(make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, lambertian_material));
+
+
+    world.add(make_shared<Box>(lambertian_material, Point3(-0.2, 0, -1.4), Point3(0.2, 0.4, -1)));
     
     return world;
 }
@@ -132,12 +136,17 @@ HittableList cornell_box()
     auto white_material = make_shared<Lambertian>(Color(.73, .73, .73));
     auto light_material = make_shared<Light>(COLOR_WHITE, 15);
 
+    //add walls
     world.add(make_shared<Rect_xz>(light_material, 213, 343, 227, 332, 554));
     world.add(make_shared<Rect_yz>(red_material,   0, 555, 0, 555, 555));
     world.add(make_shared<Rect_yz>(green_material, 0, 555, 0, 555, 0));
     world.add(make_shared<Rect_xz>(white_material, 0, 555, 0, 555, 0));
     world.add(make_shared<Rect_xz>(white_material, 0, 555, 0, 555, 555));
     world.add(make_shared<Rect_xy>(white_material, 0, 555, 0, 555, 555));
+
+    //Add boxes
+    world.add(make_shared<Box>(white_material, Point3(130, 0, 65), Point3(295, 165, 230)));
+    world.add(make_shared<Box>(white_material, Point3(265, 0, 295), Point3(430, 330, 460)));
 
     return world;
 }
@@ -253,7 +262,7 @@ int main()
     std::cin >> choice;
 
     //Image
-    const char* imagepng = "result_images\\Empty_Cronellbox.png";
+    const char* imagepng = "result_images\\Cornellbox.png";
     const auto aspect_ratio = 1.0;// 3.0 / 2.0;
     const int w = 600;
     const int h = static_cast<int>(w / aspect_ratio);
@@ -301,7 +310,7 @@ int main()
         break;
     case 5:
         world = cornell_box();
-        background = Color(0, 0, 0);
+        background = Color(0.1, 0.1, 0.1); //to add some light 
         cameraPosition = Point3(278, 278, -800);
         cameraLookAt = Point3(278, 278, 0);
         fieldOfView_deg = 40.0;

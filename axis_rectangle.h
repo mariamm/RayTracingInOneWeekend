@@ -124,8 +124,8 @@ public:
         z1 = 0;
     }
 
-    Rect_yz(shared_ptr<Material> material_, double z_0, double z_1, double y_0, double y_1, double k_)
-        : material(material_), z0(z_0), z1(z_1), y0(y_0), y1(y_1), k(k_)
+    Rect_yz(shared_ptr<Material> material_, double y_0, double y_1, double z_0, double z_1, double k_)
+        : material(material_), y0(y_0), y1(y_1), z0(z_0), z1(z_1), k(k_)
     {
 
     }
@@ -134,7 +134,7 @@ public:
     virtual bool boundingBox(double time0, double time1, aabb& output_box) const override;
 
 private:
-    double z0, z1, y0, y1, k;
+    double y0, y1, z0, z1, k;
     shared_ptr<Material> material;
 };
 
