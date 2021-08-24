@@ -34,3 +34,4 @@ packages/
 *.vcxproj
 /external/*
 *.ppm
+/build/*
